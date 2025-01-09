@@ -1,11 +1,10 @@
 import CoinAnalysisContent from './CoinAnalysisContent'
 
-interface PageProps {
-  params: {
-    coinId: string
-  }
+type Props = {
+  params: { coinId: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function CoinAnalysisPage({ params }: PageProps) {
+export default function CoinAnalysisPage({ params }: Props) {
   return <CoinAnalysisContent coinId={params.coinId} />
 } 
