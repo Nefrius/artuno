@@ -1,9 +1,4 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
 
 interface HistoricalData {
   prices: [number, number][]
@@ -15,6 +10,54 @@ interface AIAnalysis {
   confidence: number
   trend: 'up' | 'down'
   explanation: string
+}
+
+async function analyzeWithHuggingFace(prompt: string): Promise<AIAnalysis> {
+  const response = await fetch(
+    "https://api-inference.huggingface.co/models/facebook/bart-large",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+      },
+      method: "POST",
+      body: JSON.stringify({ inputs: prompt }),
+    }
+  )
+
+  const result = await response.json()
+  
+  // Basit bir kural tabanlı analiz yapalım
+  const priceMatch = prompt.match(/Son fiyat: \$(\d+\.?\d*)/)
+  const changeMatch = prompt.match(/24s fiyat değişimi: %(-?\d+\.?\d*)/)
+  const volumeChangeMatch = prompt.match(/Hacim değişimi: %(-?\d+\.?\d*)/)
+  
+  const currentPrice = priceMatch ? parseFloat(priceMatch[1]) : 0
+  const priceChange = changeMatch ? parseFloat(changeMatch[1]) : 0
+  const volumeChange = volumeChangeMatch ? parseFloat(volumeChangeMatch[1]) : 0
+  
+  // Trend belirleme
+  const trend = priceChange > 0 && volumeChange > 0 ? 'up' : 'down'
+  
+  // Fiyat tahmini
+  const prediction = trend === 'up' 
+    ? currentPrice * (1 + Math.abs(priceChange) / 100)
+    : currentPrice * (1 - Math.abs(priceChange) / 100)
+  
+  // Güven oranı hesaplama
+  const confidence = Math.min(
+    Math.round(
+      (Math.abs(priceChange) + Math.abs(volumeChange)) / 2
+    ),
+    100
+  )
+  
+  return {
+    prediction: parseFloat(prediction.toFixed(2)),
+    confidence,
+    trend,
+    explanation: result[0]?.generated_text || 'Mevcut piyasa koşullarına göre analiz yapıldı.'
+  }
 }
 
 export async function POST(request: Request) {
@@ -48,8 +91,7 @@ export async function POST(request: Request) {
       priceMovements.reduce((sum: number, change: number) => sum + change * change, 0) / priceMovements.length
     )
 
-    // OpenAI'ye gönderilecek prompt
-    const prompt = `Aşağıdaki kripto para verilerini analiz ederek, gelecek 24 saat için fiyat tahmini yap:
+    const prompt = `Aşağıdaki kripto para verilerini analiz et:
 
 Coin: ${coinId}
 Son fiyat: $${lastPrice.toFixed(2)}
@@ -58,42 +100,11 @@ Son fiyat: $${lastPrice.toFixed(2)}
 Hacim değişimi: %${volumeChange.toFixed(2)}
 Volatilite: ${volatility.toFixed(2)}
 
-Lütfen aşağıdaki bilgileri içeren bir analiz yap:
-1. 24 saat sonrası için fiyat tahmini (prediction)
-2. Tahminin güven oranı (confidence) - 0-100 arası bir sayı
-3. Fiyat trendi (trend) - "up" veya "down"
-4. Detaylı açıklama (explanation)
+Bu verilere göre detaylı bir piyasa analizi yap.`
 
-Yanıtı JSON formatında ver. Örnek:
-{
-  "prediction": 45000.50,
-  "confidence": 75,
-  "trend": "up",
-  "explanation": "Detaylı analiz açıklaması..."
-}`
+    const analysis = await analyzeWithHuggingFace(prompt)
 
-    // OpenAI'den analiz al
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-4-1106-preview",
-      temperature: 0.5,
-      response_format: { type: "json_object" }
-    })
-
-    const content = completion.choices[0].message.content
-    if (!content) {
-      throw new Error('OpenAI yanıt vermedi')
-    }
-
-    const analysis = JSON.parse(content) as AIAnalysis
-
-    // Tahmin sonucunu döndür
-    return NextResponse.json({
-      prediction: analysis.prediction,
-      confidence: analysis.confidence,
-      trend: analysis.trend,
-      explanation: analysis.explanation
-    })
+    return NextResponse.json(analysis)
 
   } catch (error) {
     console.error('Analiz hatası:', error)

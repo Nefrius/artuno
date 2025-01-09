@@ -235,6 +235,7 @@ export default function Navbar() {
                               alt=""
                               width={40}
                               height={40}
+                              priority
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
