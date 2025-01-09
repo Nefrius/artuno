@@ -1,21 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'coin-images.coingecko.com',
-        port: '',
-        pathname: '/coins/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'assets.coingecko.com',
-        port: '',
-        pathname: '/coins/images/**',
-      }
+    domains: [
+      'assets.coingecko.com',
+      'lh3.googleusercontent.com'
     ],
-    domains: ['lh3.googleusercontent.com'],
   },
 }
 
