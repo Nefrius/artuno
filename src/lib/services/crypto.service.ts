@@ -26,6 +26,7 @@ export interface CoinDetail extends CoinData {
     market_cap: { usd: number }
     total_volume: { usd: number }
   }
+  market_cap_rank: number
 }
 
 export async function getTopCoins(limit = 10): Promise<CoinData[]> {

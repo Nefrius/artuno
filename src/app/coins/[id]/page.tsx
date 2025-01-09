@@ -102,7 +102,7 @@ export default function CoinDetailPage({ params }: PageProps) {
                     {coin.name} ({coin.symbol.toUpperCase()})
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Piyasa Sıralaması: #{coin.market_cap_rank}
+                    Piyasa Değeri: ${new Intl.NumberFormat('en-US').format(coin.market_data.market_cap.usd)}
                   </p>
                 </div>
               </div>
