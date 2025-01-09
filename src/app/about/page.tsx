@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import PageLayout from '@/components/PageLayout'
 import { motion } from 'framer-motion'
-import { Rocket, Brain, Lock, TrendingUp, Users, Shield } from 'lucide-react'
+import { Users, Shield, Zap, Heart } from 'lucide-react'
 
 export default function AboutPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -17,36 +18,26 @@ export default function AboutPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  const features = [
+  const values = [
     {
-      icon: <Rocket className="w-8 h-8" />,
-      title: 'Hızlı ve Güvenilir',
-      description: 'Gerçek zamanlı kripto para verileri ve anlık tahmin oluşturma.'
+      icon: <Users className="w-12 h-12 text-indigo-500" />,
+      title: "Topluluk Odaklı",
+      description: "Kripto para topluluğuna değer katmak ve kullanıcılarımıza en iyi deneyimi sunmak için çalışıyoruz."
     },
     {
-      icon: <Brain className="w-8 h-8" />,
-      title: 'Yapay Zeka Destekli',
-      description: 'Gelişmiş AI modelleri ile güvenilir tahmin skorları.'
+      icon: <Shield className="w-12 h-12 text-indigo-500" />,
+      title: "Güvenilir",
+      description: "En güncel güvenlik önlemleri ve şeffaf yaklaşımımızla kullanıcılarımızın güvenini kazanıyoruz."
     },
     {
-      icon: <Lock className="w-8 h-8" />,
-      title: 'Güvenli Kimlik Doğrulama',
-      description: 'Google hesabınızla güvenli ve hızlı giriş yapın.'
+      icon: <Zap className="w-12 h-12 text-indigo-500" />,
+      title: "Yenilikçi",
+      description: "En son teknolojileri kullanarak sürekli kendimizi geliştiriyor ve yeniliklere öncülük ediyoruz."
     },
     {
-      icon: <TrendingUp className="w-8 h-8" />,
-      title: 'Detaylı Analizler',
-      description: 'Kripto para piyasalarını detaylı şekilde analiz edin.'
-    },
-    {
-      icon: <Users className="w-8 h-8" />,
-      title: 'Topluluk Odaklı',
-      description: 'Diğer yatırımcılarla etkileşime geçin ve deneyimlerinizi paylaşın.'
-    },
-    {
-      icon: <Shield className="w-8 h-8" />,
-      title: 'Veri Güvenliği',
-      description: 'Verileriniz en üst düzey güvenlik önlemleriyle korunur.'
+      icon: <Heart className="w-12 h-12 text-indigo-500" />,
+      title: "Tutkulu",
+      description: "Kripto para teknolojilerine olan tutkumuzla her gün daha iyisini sunmak için çalışıyoruz."
     }
   ]
 
@@ -60,9 +51,7 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <Navbar />
-      
+    <PageLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -71,52 +60,67 @@ export default function AboutPage() {
           className="text-center mb-16"
         >
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Artuno Hakkında
+            Hakkımızda
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Artuno, kripto para piyasalarını yapay zeka ile analiz eden ve yatırımcılara
-            güvenilir tahminler sunan yenilikçi bir platformdur.
+            Artuno, kripto para piyasasını herkes için daha anlaşılır ve erişilebilir kılma misyonuyla yola çıktı.
+            Yapay zeka teknolojileri ve kullanıcı dostu arayüzümüzle, yatırımcılara değer katmayı hedefliyoruz.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {values.map((value, index) => (
             <motion.div
-              key={feature.title}
+              key={value.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+              className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
             >
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4">
-                {feature.icon}
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4">
+                  {value.icon}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {value.title}
+                </h3>
+                <p className="text-gray-600">
+                  {value.description}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600">
-                {feature.description}
-              </p>
             </motion.div>
           ))}
         </div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-indigo-50 rounded-2xl p-8 text-center"
         >
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Misyonumuz
+            Vizyonumuz
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Kripto para piyasalarında yatırımcılara yardımcı olmak ve yapay zeka
-            teknolojileri ile daha güvenilir yatırım kararları almalarını sağlamak.
+          <p className="text-xl text-gray-600 mb-8">
+            Kripto para piyasasında güvenilir bir rehber olmak ve yapay zeka teknolojileri ile
+            kullanıcılarımıza değer katmaya devam etmek.
           </p>
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <a
+              href="/markets"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Piyasaları İncele
+            </a>
+            <a
+              href="/how-it-works"
+              className="inline-flex items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50"
+            >
+              Nasıl Çalışır?
+            </a>
+          </div>
         </motion.div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

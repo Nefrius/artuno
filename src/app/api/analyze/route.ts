@@ -14,14 +14,22 @@ interface AIAnalysis {
 
 async function analyzeWithHuggingFace(prompt: string): Promise<AIAnalysis> {
   const response = await fetch(
-    "https://api-inference.huggingface.co/models/facebook/bart-large",
+    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1",
     {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
       },
       method: "POST",
-      body: JSON.stringify({ inputs: prompt }),
+      body: JSON.stringify({
+        inputs: `<s>[INST] ${prompt} [/INST]`,
+        parameters: {
+          max_new_tokens: 500,
+          temperature: 0.7,
+          top_p: 0.95,
+          return_full_text: false
+        }
+      }),
     }
   )
 
@@ -36,21 +44,29 @@ async function analyzeWithHuggingFace(prompt: string): Promise<AIAnalysis> {
   const priceChange = changeMatch ? parseFloat(changeMatch[1]) : 0
   const volumeChange = volumeChangeMatch ? parseFloat(volumeChangeMatch[1]) : 0
   
-  // Trend belirleme
-  const trend = priceChange > 0 && volumeChange > 0 ? 'up' : 'down'
+  // Trend belirleme (daha gelişmiş algoritma)
+  const trend = (() => {
+    const priceWeight = 0.6
+    const volumeWeight = 0.4
+    const weightedScore = priceChange * priceWeight + volumeChange * volumeWeight
+    return weightedScore > 0 ? 'up' : 'down'
+  })()
   
-  // Fiyat tahmini
-  const prediction = trend === 'up' 
-    ? currentPrice * (1 + Math.abs(priceChange) / 100)
-    : currentPrice * (1 - Math.abs(priceChange) / 100)
+  // Fiyat tahmini (geliştirilmiş)
+  const prediction = (() => {
+    const volatilityFactor = Math.min(Math.abs(priceChange) / 10, 1)
+    const baseChange = Math.abs(priceChange) * (1 + volatilityFactor)
+    return trend === 'up'
+      ? currentPrice * (1 + baseChange / 100)
+      : currentPrice * (1 - baseChange / 100)
+  })()
   
-  // Güven oranı hesaplama
-  const confidence = Math.min(
-    Math.round(
-      (Math.abs(priceChange) + Math.abs(volumeChange)) / 2
-    ),
-    100
-  )
+  // Güven oranı hesaplama (geliştirilmiş)
+  const confidence = (() => {
+    const priceConfidence = Math.min(Math.abs(priceChange), 100) * 0.6
+    const volumeConfidence = Math.min(Math.abs(volumeChange), 100) * 0.4
+    return Math.min(Math.round(priceConfidence + volumeConfidence), 100)
+  })()
   
   return {
     prediction: parseFloat(prediction.toFixed(2)),
