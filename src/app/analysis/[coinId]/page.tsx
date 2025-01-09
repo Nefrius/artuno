@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { getCoinData, getHistoricalData, CoinData } from '@/lib/services/crypto.service'
 import { Line } from 'react-chartjs-2'
 import {
@@ -44,6 +44,7 @@ interface PriceAnalysis {
 }
 
 export default function CoinAnalysisPage({ params }: { params: { coinId: string } }) {
+  const coinId = use(Promise.resolve(params.coinId))
   const [loading, setLoading] = useState(true)
   const [coinData, setCoinData] = useState<CoinData | null>(null)
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null)
@@ -54,8 +55,8 @@ export default function CoinAnalysisPage({ params }: { params: { coinId: string 
       try {
         setLoading(true)
         const [coin, history] = await Promise.all([
-          getCoinData(params.coinId),
-          getHistoricalData(params.coinId)
+          getCoinData(coinId),
+          getHistoricalData(coinId)
         ])
         setCoinData(coin)
         setHistoricalData(history)
@@ -67,7 +68,7 @@ export default function CoinAnalysisPage({ params }: { params: { coinId: string 
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            coinId: params.coinId,
+            coinId: coinId,
             historicalData: history
           })
         })
@@ -86,7 +87,7 @@ export default function CoinAnalysisPage({ params }: { params: { coinId: string 
     }
 
     fetchData()
-  }, [params.coinId])
+  }, [coinId])
 
   if (loading) {
     return (
