@@ -1,139 +1,77 @@
 'use client'
 
-import Navbar from '@/components/Navbar'
-import { Brain, TrendingUp, Users, Shield } from 'lucide-react'
+import PageLayout from '@/components/PageLayout'
+import { motion } from 'framer-motion'
 
 export default function HowItWorksPage() {
-  const features = [
-    {
-      name: 'Yapay Zeka Desteği',
-      description: 'Gelişmiş yapay zeka modelleri ile daha isabetli tahminler yapın.',
-      icon: Brain,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    },
-    {
-      name: 'Gerçek Zamanlı Veriler',
-      description: 'En güncel kripto para verilerine anında erişin.',
-      icon: TrendingUp,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    {
-      name: 'Topluluk',
-      description: 'Diğer kullanıcılarla yarışın ve deneyimlerinizi paylaşın.',
-      icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
-    },
-    {
-      name: 'Güvenli',
-      description: 'Google hesabınızla güvenli bir şekilde giriş yapın.',
-      icon: Shield,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100'
-    }
-  ]
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Giriş Yapın',
-      description: 'Google hesabınızla hızlıca giriş yapın ve platformu kullanmaya başlayın.'
-    },
-    {
-      number: '02',
-      title: 'Kripto Para Seçin',
-      description: 'Tahmin yapmak istediğiniz kripto parayı listeden seçin.'
-    },
-    {
-      number: '03',
-      title: 'Yön Belirleyin',
-      description: 'Seçtiğiniz kripto paranın yükseleceğini mi, düşeceğini mi tahmin ediyorsunuz?'
-    },
-    {
-      number: '04',
-      title: 'Sonuçları Takip Edin',
-      description: '24 saat sonra tahmininizin doğru mu yanlış mı olduğunu öğrenin.'
-    }
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <Navbar />
-      
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-            Kripto Para Tahminleri
-            <span className="block text-indigo-600">Nasıl Çalışır?</span>
+    <PageLayout>
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white shadow-lg rounded-2xl p-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            Nasıl Çalışır?
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Artuno'nun yapay zeka destekli tahmin sistemini kullanarak kripto para piyasalarında daha isabetli tahminler yapın.
-          </p>
-        </div>
-      </div>
 
-      {/* Features Section */}
-      <div className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Özellikler
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-              Artuno'yu özel yapan özellikleri keşfedin
-            </p>
-          </div>
+          <div className="space-y-6 text-gray-600">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                1. Google ile Giriş Yapın
+              </h2>
+              <p>
+                Artuno&apos;yu kullanmaya başlamak için Google hesabınızla giriş yapmanız yeterli.
+                Güvenli ve hızlı bir şekilde sisteme erişebilirsiniz.
+              </p>
+            </div>
 
-          <div className="mt-20">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-              {features.map((feature) => (
-                <div key={feature.name} className="relative">
-                  <div>
-                    <div className={`absolute h-12 w-12 rounded-md flex items-center justify-center ${feature.bgColor}`}>
-                      <feature.icon className={`h-6 w-6 ${feature.color}`} aria-hidden="true" />
-                    </div>
-                    <p className="ml-16 text-lg leading-6 font-medium text-gray-900">{feature.name}</p>
-                  </div>
-                  <div className="mt-2 ml-16 text-base text-gray-500">
-                    {feature.description}
-                  </div>
-                </div>
-              ))}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                2. Kripto Para Seçin
+              </h2>
+              <p>
+                Tahmin yapmak istediğiniz kripto parayı seçin. Popüler coinlerin
+                güncel fiyatlarını ve trend bilgilerini görüntüleyebilirsiniz.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                3. Tahmininizi Yapın
+              </h2>
+              <p>
+                Seçtiğiniz kripto paranın 24 saat içindeki yönünü tahmin edin.
+                Yükseliş veya düşüş beklentinizi belirtin.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                4. Sonuçları Takip Edin
+              </h2>
+              <p>
+                24 saat sonra tahmininizin sonucu otomatik olarak kontrol edilir.
+                Profilinizden tüm tahminlerinizi ve başarı oranınızı görebilirsiniz.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg mt-8">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                Önemli Notlar
+              </h3>
+              <ul className="list-disc list-inside space-y-2 text-blue-800">
+                <li>Her gün sınırlı sayıda tahmin yapabilirsiniz</li>
+                <li>Tahminler 24 saat geçerlidir</li>
+                <li>Sonuçlar otomatik olarak kontrol edilir</li>
+                <li>Başarılı tahminleriniz profilinizde görüntülenir</li>
+              </ul>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-
-      {/* Steps Section */}
-      <div className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Nasıl Kullanılır?
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-              Dört basit adımda tahmin yapmaya başlayın
-            </p>
-          </div>
-
-          <div className="mt-20">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-              {steps.map((step) => (
-                <div key={step.number} className="relative">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 ease-in-out">
-                    <span className="text-4xl font-bold text-indigo-600">{step.number}</span>
-                    <h3 className="mt-4 text-xl font-medium text-gray-900">{step.title}</h3>
-                    <p className="mt-2 text-base text-gray-500">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   )
 } 

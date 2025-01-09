@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAlert } from './Alert'
 
 export default function Navbar() {
-  const { user, loading, signInWithGoogle, logout } = useAuth()
+  const { user, loading, signIn, signOut } = useAuth()
   const { showAlert } = useAlert()
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
@@ -21,6 +21,7 @@ export default function Navbar() {
     { name: 'Ana Sayfa', href: '/' },
     { name: 'Piyasalar', href: '/markets' },
     { name: 'Tahminler', href: '/predictions', requireAuth: true },
+    { name: 'Profil', href: '/profile', requireAuth: true },
     { name: 'Nasıl Çalışır?', href: '/how-it-works' },
     { name: 'Hakkında', href: '/about' },
   ]
@@ -35,7 +36,7 @@ export default function Navbar() {
     try {
       setIsAuthLoading(true)
       showAlert('Giriş yapılıyor...', 'info')
-      await signInWithGoogle()
+      await signIn()
       showAlert('Giriş başarıyla yapıldı!', 'success')
     } catch {
       showAlert('Giriş işlemi iptal edildi.', 'error')
@@ -47,7 +48,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       setIsAuthLoading(true)
-      await logout()
+      await signOut()
       showAlert('Çıkış yapıldı.', 'info')
     } catch {
       showAlert('Çıkış yapılırken bir hata oluştu.', 'error')
@@ -140,6 +141,18 @@ export default function Navbar() {
                             <div className="px-4 py-2 text-sm text-gray-700 border-b">
                               {user.email}
                             </div>
+                            <motion.div
+                              whileHover={{ x: 5 }}
+                              className="block w-full text-left"
+                            >
+                              <Link
+                                href="/profile"
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                <User className="mr-2 h-4 w-4" />
+                                Profil
+                              </Link>
+                            </motion.div>
                             <motion.div
                               whileHover={{ x: 5 }}
                               className="block w-full text-left"

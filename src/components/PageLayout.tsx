@@ -1,29 +1,19 @@
 'use client'
 
-import { useState, useEffect, ReactNode } from 'react'
-import Navbar from './Navbar'
 import LoadingSpinner from './LoadingSpinner'
 import { motion } from 'framer-motion'
+import Navbar from './Navbar'
+import { ReactNode } from 'react'
 
 interface PageLayoutProps {
   children: ReactNode
+  loading?: boolean
 }
 
-export default function PageLayout({ children }: PageLayoutProps) {
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
+const PageLayout = ({ children, loading = false }: PageLayoutProps) => {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        <Navbar />
+      <div className="flex justify-center items-center min-h-screen">
         <LoadingSpinner />
       </div>
     )
@@ -36,10 +26,12 @@ export default function PageLayout({ children }: PageLayoutProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="container mx-auto px-4 py-8"
       >
         {children}
       </motion.div>
     </div>
   )
-} 
+}
+
+export default PageLayout 
