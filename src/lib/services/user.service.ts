@@ -135,4 +135,45 @@ export const incrementTotalPredictions = async (userId: string): Promise<UserRow
     console.error('incrementTotalPredictions hatası:', JSON.stringify(error, null, 2))
     throw error
   }
+}
+
+export const searchUsers = async (query: string): Promise<UserRow[]> => {
+  try {
+    const cleanQuery = query.trim().toLowerCase()
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .or(
+        `email.ilike.%${cleanQuery}%,` +
+        `email.ilike.${cleanQuery}%,` +
+        `email.ilike.%${cleanQuery}`
+      )
+      .limit(5)
+
+    if (error) {
+      console.error('Kullanıcı arama hatası:', error)
+      throw error
+    }
+
+    // Sonuçları sırala: Tam eşleşenler önce
+    const sortedUsers = (users || []).sort((a, b) => {
+      const aEmail = a.email.toLowerCase()
+      const bEmail = b.email.toLowerCase()
+      
+      // Tam eşleşme kontrolü
+      if (aEmail === cleanQuery) return -1
+      if (bEmail === cleanQuery) return 1
+      
+      // Başlangıç eşleşmesi kontrolü
+      if (aEmail.startsWith(cleanQuery) && !bEmail.startsWith(cleanQuery)) return -1
+      if (bEmail.startsWith(cleanQuery) && !aEmail.startsWith(cleanQuery)) return 1
+      
+      return 0
+    })
+
+    return sortedUsers
+  } catch (error) {
+    console.error('searchUsers hatası:', error)
+    throw error
+  }
 } 

@@ -5,8 +5,12 @@ import { updateDailyPredictions, incrementTotalPredictions } from './user.servic
 type PredictionRow = Database['public']['Tables']['predictions']['Row']
 
 export interface Prediction extends PredictionRow {
+  id: string
+  user_id: string
+  coin_id: string
+  created_at: string
   prediction_type: 'up' | 'down'
-  result?: boolean
+  result: boolean | null
 }
 
 export interface CreatePredictionData {
@@ -53,7 +57,7 @@ export const createPrediction = async (data: CreatePredictionData): Promise<Pred
   }
 }
 
-export const getUserPredictions = async (userId: string): Promise<PredictionRow[]> => {
+export const getUserPredictions = async (userId: string): Promise<Prediction[]> => {
   try {
     const { data: predictions, error } = await supabase
       .from('predictions')
@@ -66,7 +70,7 @@ export const getUserPredictions = async (userId: string): Promise<PredictionRow[
       throw error
     }
 
-    return predictions || []
+    return (predictions || []) as Prediction[]
   } catch (error) {
     console.error('getUserPredictions hatası:', JSON.stringify(error, null, 2))
     throw error
@@ -151,6 +155,22 @@ export const checkPredictionResults = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('checkPredictionResults hatası:', error)
+    throw error
+  }
+}
+
+export async function deletePrediction(predictionId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('predictions')
+      .delete()
+      .eq('id', predictionId)
+
+    if (error) {
+      throw error
+    }
+  } catch (error) {
+    console.error('Tahmin silme hatası:', error)
     throw error
   }
 } 

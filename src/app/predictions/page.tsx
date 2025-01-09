@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { CoinData, getTopCoins } from '@/lib/services/crypto.service'
-import { Prediction, createPrediction, getUserPredictions } from '@/lib/services/prediction.service'
-import { TrendingUp, TrendingDown, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Prediction, createPrediction, getUserPredictions, deletePrediction } from '@/lib/services/prediction.service'
+import { TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import PageLayout from '@/components/PageLayout'
 import { motion } from 'framer-motion'
+import { useAlert } from '@/components/Alert'
 
 export default function PredictionsPage() {
   const { user } = useAuth()
+  const { showAlert } = useAlert()
   const [coins, setCoins] = useState<CoinData[]>([])
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [selectedCoin, setSelectedCoin] = useState<string>('')
@@ -28,13 +30,14 @@ export default function PredictionsPage() {
         setPredictions(userPredictions)
       } catch (error) {
         console.error('Veri alınırken hata:', error)
+        showAlert('Veriler alınırken bir hata oluştu.', 'error')
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [user])
+  }, [user, showAlert])
 
   const handleCreatePrediction = async () => {
     if (!user || !selectedCoin) return
@@ -55,11 +58,28 @@ export default function PredictionsPage() {
       if (newPrediction) {
         setPredictions([newPrediction, ...predictions])
         setSelectedCoin('')
+        showAlert('Tahmin başarıyla oluşturuldu!', 'success')
       }
     } catch (error) {
       console.error('Tahmin oluşturulurken hata:', error)
+      showAlert('Tahmin oluşturulurken bir hata oluştu.', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async (predictionId: string) => {
+    if (!window.confirm('Bu tahmini silmek istediğinize emin misiniz?')) {
+      return
+    }
+
+    try {
+      await deletePrediction(predictionId)
+      setPredictions(predictions.filter(p => p.id !== predictionId))
+      showAlert('Tahmin başarıyla silindi.', 'success')
+    } catch (error) {
+      console.error('Tahmin silinirken hata:', error)
+      showAlert('Tahmin silinirken bir hata oluştu.', 'error')
     }
   }
 
@@ -242,7 +262,7 @@ export default function PredictionsPage() {
                             )}
                             {prediction.prediction_type === 'up' ? 'Yükseliş' : 'Düşüş'}
                           </span>
-                          {prediction.result !== undefined && (
+                          {prediction.result !== null && (
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                                 prediction.result
@@ -258,6 +278,14 @@ export default function PredictionsPage() {
                               {prediction.result ? 'Doğru' : 'Yanlış'}
                             </span>
                           )}
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleDelete(prediction.id)}
+                            className="p-1 text-red-600 hover:text-red-800 transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </motion.button>
                         </div>
                       </div>
                     </motion.div>

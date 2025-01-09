@@ -1,10 +1,3 @@
-const COINGECKO_API = 'https://api.coingecko.com/api/v3'
-const COINGECKO_API_KEY = process.env.NEXT_PUBLIC_COINGECKO_API_KEY
-
-const headers = COINGECKO_API_KEY
-  ? { 'x-cg-demo-api-key': COINGECKO_API_KEY }
-  : undefined
-
 export interface CoinData {
   id: string
   symbol: string
@@ -12,27 +5,23 @@ export interface CoinData {
   image: string
   current_price: number
   market_cap: number
-  total_volume: number
-  price_change_percentage_24h: number
-}
-
-export interface CoinDetail extends CoinData {
-  description: { tr?: string; en: string }
-  market_data: {
-    current_price: { usd: number }
-    price_change_percentage_24h: number
-    price_change_percentage_7d: number
-    price_change_percentage_30d: number
-    market_cap: { usd: number }
-    total_volume: { usd: number }
-  }
   market_cap_rank: number
+  total_volume: number
+  high_24h: number
+  low_24h: number
+  price_change_24h: number
+  price_change_percentage_24h: number
+  market_cap_change_24h: number
+  market_cap_change_percentage_24h: number
+  last_updated: string
 }
 
-export async function getTopCoins(limit = 10): Promise<CoinData[]> {
+export async function getTopCoins(limit: number = 10): Promise<CoinData[]> {
   try {
-    const response = await fetch(`/api/coingecko?endpoint=/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`)
-    
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`
+    )
+
     if (!response.ok) {
       throw new Error('API isteği başarısız oldu')
     }
@@ -40,36 +29,59 @@ export async function getTopCoins(limit = 10): Promise<CoinData[]> {
     const data = await response.json()
     return data
   } catch (error) {
-    console.error('Kripto para verileri alınırken hata:', error)
+    console.error('getTopCoins hatası:', error)
     throw error
   }
 }
 
-export const getCoinDetail = async (coinId: string): Promise<CoinDetail> => {
-  const response = await fetch(
-    `${COINGECKO_API}/coins/${coinId}?localization=true&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
-    { headers }
-  )
-  
-  if (!response.ok) {
-    throw new Error('Kripto para detayları alınamadı')
+export async function getCoinData(coinId: string): Promise<CoinData> {
+  try {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+    )
+
+    if (!response.ok) {
+      throw new Error('API isteği başarısız oldu')
+    }
+
+    const data = await response.json()
+    return {
+      id: data.id,
+      symbol: data.symbol,
+      name: data.name,
+      image: data.image.large,
+      current_price: data.market_data.current_price.usd,
+      market_cap: data.market_data.market_cap.usd,
+      market_cap_rank: data.market_cap_rank,
+      total_volume: data.market_data.total_volume.usd,
+      high_24h: data.market_data.high_24h.usd,
+      low_24h: data.market_data.low_24h.usd,
+      price_change_24h: data.market_data.price_change_24h,
+      price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+      market_cap_change_24h: data.market_data.market_cap_change_24h,
+      market_cap_change_percentage_24h: data.market_data.market_cap_change_percentage_24h,
+      last_updated: data.last_updated
+    }
+  } catch (error) {
+    console.error('getCoinData hatası:', error)
+    throw error
   }
-  
-  return response.json()
 }
 
-export const getCoinPriceHistory = async (
-  coinId: string,
-  days: number = 7
-): Promise<{ prices: [number, number][] }> => {
-  const response = await fetch(
-    `${COINGECKO_API}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
-    { headers }
-  )
-  
-  if (!response.ok) {
-    throw new Error('Fiyat geçmişi alınamadı')
+export async function getHistoricalData(coinId: string, days: number = 1) {
+  try {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+    )
+
+    if (!response.ok) {
+      throw new Error('API isteği başarısız oldu')
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('getHistoricalData hatası:', error)
+    throw error
   }
-  
-  return response.json()
 } 

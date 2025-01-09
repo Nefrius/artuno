@@ -8,15 +8,15 @@ import { createOrUpdateUser } from '@/lib/services/user.service'
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: () => Promise<void>
-  signOut: () => Promise<void>
+  signInWithGoogle: () => Promise<void>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signIn: async () => {},
-  signOut: async () => {}
+  signInWithGoogle: async () => {},
+  logout: async () => {}
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe()
   }, [])
 
-  const signIn = async () => {
+  const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider()
       const result = await signInWithPopup(auth, provider)
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signOut = async () => {
+  const logout = async () => {
     try {
       await firebaseSignOut(auth)
     } catch (error) {
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   )

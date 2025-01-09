@@ -2,7 +2,7 @@
 
 import PageLayout from '@/components/PageLayout'
 import { motion } from 'framer-motion'
-import { TrendingUp, ChartBar, Shield, Brain, ArrowRight, Users } from 'lucide-react'
+import { TrendingUp, ChartBar, Shield, Brain, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 
@@ -85,31 +85,80 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+          className="flex justify-center gap-6 mb-32"
         >
-          {user ? (
-            <Link
-              href="/predictions"
-              className="group inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200"
+          {!user ? (
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
             >
-              Tahminlere Başla
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6">
+                  <Users className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Hemen Katılın
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Kripto para piyasalarını analiz edin, yapay zeka destekli tahminler yapın ve yatırımlarınızı daha bilinçli yönetin.
+                </p>
+                <button
+                  onClick={() => signInWithGoogle()}
+                  className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors w-full"
+                >
+                  Google ile Giriş Yap
+                </button>
+              </div>
+            </motion.div>
           ) : (
-            <Link
-              href="/how-it-works"
-              className="group inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200"
-            >
-              Nasıl Çalışır?
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            <>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6">
+                    <ChartBar className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Dashboard
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Dashboard&apos;ınıza giderek piyasa verilerini takip edebilir ve portföyünüzü yönetebilirsiniz.
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors w-full inline-block text-center"
+                  >
+                    Dashboard&apos;a Git
+                  </Link>
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6">
+                    <TrendingUp className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Tahminler
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Yeni tahminler oluşturabilir, mevcut tahminlerinizi görüntüleyebilir ve başarı oranınızı takip edebilirsiniz.
+                  </p>
+                  <Link
+                    href="/predictions"
+                    className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors w-full inline-block text-center"
+                  >
+                    Tahminlere Git
+                  </Link>
+                </div>
+              </motion.div>
+            </>
           )}
-          <Link
-            href="/markets"
-            className="inline-flex items-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transform hover:scale-105 transition-all duration-200"
-          >
-            Piyasaları Görüntüle
-          </Link>
         </motion.div>
 
         {/* Stats Section */}
