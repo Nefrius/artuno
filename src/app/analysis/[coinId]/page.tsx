@@ -1,20 +1,22 @@
-import { use } from 'react'
-import AnimatedContent from './AnimatedContent'
+import { Suspense } from 'react'
+import CoinAnalysisContent from './CoinAnalysisContent'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import PageLayout from '@/components/PageLayout'
 
-interface PageProps {
-  params: Promise<{
+interface AnalysisPageProps {
+  params: {
     coinId: string
-  }>
+  }
 }
 
-export async function generateStaticParams(): Promise<{ coinId: string }[]> {
-  return Promise.resolve([
-    { coinId: 'bitcoin' },
-    { coinId: 'ethereum' }
-  ])
-}
-
-export default function CoinAnalysisPage({ params }: PageProps) {
-  const { coinId } = use(params)
-  return <AnimatedContent coinId={coinId} />
+export default function AnalysisPage({ params }: AnalysisPageProps) {
+  return (
+    <PageLayout>
+      <div className="container mx-auto px-4 py-8">
+        <Suspense fallback={<LoadingSpinner />}>
+          <CoinAnalysisContent coinId={params.coinId} />
+        </Suspense>
+      </div>
+    </PageLayout>
+  )
 } 

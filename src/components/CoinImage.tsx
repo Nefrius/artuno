@@ -1,46 +1,49 @@
 'use client'
 
-import { useState, memo, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 
-const DEFAULT_COIN_IMAGE = 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png'
-
 interface CoinImageProps {
-  src?: string | null
-  name: string
-  size?: 'sm' | 'md'
+  src: string
+  alt?: string
+  name?: string
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
 }
 
-const sizes = {
-  sm: 32,
-  md: 48
-}
+const DEFAULT_IMAGE = 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
 
-function CoinImage({ src, name, size = 'sm' }: CoinImageProps) {
-  const [imageSrc, setImageSrc] = useState<string>(DEFAULT_COIN_IMAGE)
-  const dimension = sizes[size]
+const CoinImage: React.FC<CoinImageProps> = ({ 
+  src, 
+  alt,
+  name, 
+  size = 'md',
+  className = ''
+}) => {
+  const [error, setError] = useState(false)
+  const [imageSrc, setImageSrc] = useState(src)
 
-  useEffect(() => {
-    if (src && typeof src === 'string' && src.trim() !== '') {
-      setImageSrc(src)
-    } else {
-      setImageSrc(DEFAULT_COIN_IMAGE)
-    }
-  }, [src])
+  const sizeMap = {
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12'
+  }
+
+  const handleError = () => {
+    setError(true)
+    setImageSrc(DEFAULT_IMAGE)
+  }
 
   return (
-    <div style={{ width: dimension, height: dimension }}>
-      <Image
-        src={imageSrc}
-        alt={name}
-        width={dimension}
-        height={dimension}
-        className="rounded-full"
-        onError={() => setImageSrc(DEFAULT_COIN_IMAGE)}
-        priority
-      />
-    </div>
+    <Image
+      src={error ? DEFAULT_IMAGE : imageSrc}
+      alt={alt || name || 'Kripto para birimi'}
+      width={48}
+      height={48}
+      className={`${sizeMap[size]} ${className}`}
+      onError={handleError}
+    />
   )
 }
 
-export default memo(CoinImage) 
+export default CoinImage 

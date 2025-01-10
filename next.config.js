@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: 'standalone',
   images: {
-    unoptimized: true,
-  },
-  // API rotalarını devre dışı bırak
-  experimental: {
-    appDir: true,
-    disableStaticImages: true
+    domains: [
+      'assets.coingecko.com', 
+      'coin-images.coingecko.com',
+      'lh3.googleusercontent.com',
+      'raw.githubusercontent.com'
+    ],
   }
 }
 

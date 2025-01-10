@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getHistoricalData } from '@/lib/services/predictions.service'
 
-export const dynamic = "force-static"
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,8 +17,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const data = await getHistoricalData(coinId, parseInt(days))
-    return NextResponse.json(data)
+    // Rate limit için bekleme
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    try {
+      const data = await getHistoricalData(coinId, parseInt(days))
+      return NextResponse.json(data)
+    } catch (error) {
+      // Rate limit hatası durumunda tekrar dene
+      if (error instanceof Error && error.message.includes('429')) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        const retryData = await getHistoricalData(coinId, parseInt(days))
+        return NextResponse.json(retryData)
+      }
+      throw error
+    }
   } catch (error) {
     console.error('Market chart verisi alınamadı:', error)
     return NextResponse.json(

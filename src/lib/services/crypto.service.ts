@@ -18,21 +18,32 @@ export interface CoinData {
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
 
-export async function getTopCoins(limit: number = 10): Promise<CoinData[]> {
+export async function getTopCoins(limit: number = 20) {
   try {
-    const response = await fetch(`${BASE_URL}/api/crypto?limit=${limit}`, {
+    console.log('API isteği gönderiliyor:', `${BASE_URL}/api/crypto/markets?limit=${limit}`)
+    
+    const response = await fetch(`${BASE_URL}/api/crypto/markets?limit=${limit}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
       }
     })
-    
+
+    console.log('API yanıt durumu:', response.status)
+
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Veri alınamadı')
+      const errorData = await response.text()
+      console.error('API hata yanıtı:', errorData)
+      try {
+        const jsonError = JSON.parse(errorData)
+        throw new Error(jsonError.error || `API hatası: ${response.status}`)
+      } catch {
+        throw new Error(`API hatası: ${response.status} - ${errorData}`)
+      }
     }
 
     const data = await response.json()
+    console.log('Veriler başarıyla alındı:', data.length, 'coin')
     return data
   } catch (error) {
     console.error('getTopCoins hatası:', error)

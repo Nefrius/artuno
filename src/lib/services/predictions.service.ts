@@ -15,9 +15,25 @@ export interface Prediction {
 export async function fetchFromCoinGecko(endpoint: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_COINGECKO_API_URL
-    const response = await fetch(`${baseUrl}${endpoint}`)
+    const apiKey = process.env.NEXT_PUBLIC_COINGECKO_API_KEY
+
+    // Rate limit için bekleme
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      headers: {
+        'x-cg-demo-api-key': apiKey || '',
+        'Cache-Control': 'no-cache'
+      },
+      next: { revalidate: 60 } // 1 dakika cache
+    })
     
     if (!response.ok) {
+      if (response.status === 429) {
+        // Rate limit aşıldıysa 2 saniye bekle ve tekrar dene
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        return fetchFromCoinGecko(endpoint)
+      }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     
