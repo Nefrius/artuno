@@ -16,14 +16,20 @@ export interface CoinData {
   last_updated: string
 }
 
+const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+
 export async function getTopCoins(limit: number = 10): Promise<CoinData[]> {
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`
-    )
-
+    const response = await fetch(`${BASE_URL}/api/crypto?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
     if (!response.ok) {
-      throw new Error('API isteği başarısız oldu')
+      const error = await response.json()
+      throw new Error(error.error || 'Veri alınamadı')
     }
 
     const data = await response.json()
@@ -36,12 +42,16 @@ export async function getTopCoins(limit: number = 10): Promise<CoinData[]> {
 
 export async function getCoinData(coinId: string): Promise<CoinData> {
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
-    )
-
+    const response = await fetch(`${BASE_URL}/api/crypto/${coinId}?type=info`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
     if (!response.ok) {
-      throw new Error('API isteği başarısız oldu')
+      const error = await response.json()
+      throw new Error(error.error || 'Veri alınamadı')
     }
 
     const data = await response.json()
@@ -68,14 +78,18 @@ export async function getCoinData(coinId: string): Promise<CoinData> {
   }
 }
 
-export async function getHistoricalData(coinId: string, days: number = 1) {
+export async function getHistoricalData(coinId: string) {
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-    )
-
+    const response = await fetch(`${BASE_URL}/api/crypto/${coinId}?type=history`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
     if (!response.ok) {
-      throw new Error('API isteği başarısız oldu')
+      const error = await response.json()
+      throw new Error(error.error || 'Veri alınamadı')
     }
 
     const data = await response.json()

@@ -12,39 +12,49 @@ export interface Prediction {
   actual_price_change?: number
 }
 
-interface CoinData {
-  id: string
-  symbol: string
-  name: string
-  image: string
-  current_price: number
-  market_cap: number
-  price_change_percentage_24h: number
-}
-
-async function fetchFromCoinGecko(endpoint: string) {
-  const response = await fetch(`/api/coingecko?endpoint=${encodeURIComponent(endpoint)}`)
-  if (!response.ok) {
-    throw new Error('API isteği başarısız oldu')
-  }
-  return response.json()
-}
-
-export async function getTopCoins(limit = 10) {
+export async function fetchFromCoinGecko(endpoint: string) {
   try {
-    const data = await fetchFromCoinGecko('/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=' + limit + '&sparkline=false')
-    return data.map((coin: CoinData) => ({
-      id: coin.id,
-      symbol: coin.symbol,
-      name: coin.name,
-      image: coin.image,
-      current_price: coin.current_price,
-      market_cap: coin.market_cap,
-      price_change_24h: coin.price_change_percentage_24h
-    }))
+    const baseUrl = process.env.NEXT_PUBLIC_COINGECKO_API_URL
+    const response = await fetch(`${baseUrl}${endpoint}`)
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('CoinGecko API hatası:', error)
+    throw error
+  }
+}
+
+export async function getTopCoins(limit = 20) {
+  try {
+    const coins = await fetchFromCoinGecko(`/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&sparkline=false`)
+    return coins
   } catch (error) {
     console.error('Coin listesi alınamadı:', error)
     return []
+  }
+}
+
+export async function getCoinDetails(coinId: string) {
+  try {
+    const data = await fetchFromCoinGecko(`/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`)
+    return data
+  } catch (error) {
+    console.error('Coin detayları alınamadı:', error)
+    throw error
+  }
+}
+
+export async function getHistoricalData(coinId: string, days = 30) {
+  try {
+    const data = await fetchFromCoinGecko(`/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`)
+    return data
+  } catch (error) {
+    console.error('Geçmiş veriler alınamadı:', error)
+    throw error
   }
 }
 

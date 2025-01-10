@@ -1,10 +1,13 @@
-import CoinAnalysisContent from './CoinAnalysisContent'
+import { use } from 'react'
+import AnimatedContent from './AnimatedContent'
 
-type Props = {
-  params: { coinId: string }
-  searchParams: { [key: string]: string | string[] | undefined }
+interface PageProps {
+  params: Promise<{
+    coinId: string
+  }>
 }
 
-export default function CoinAnalysisPage({ params }: Props) {
-  return <CoinAnalysisContent coinId={params.coinId} />
+export default function CoinAnalysisPage({ params }: PageProps) {
+  const { coinId } = use(params)
+  return <AnimatedContent coinId={coinId} />
 } 

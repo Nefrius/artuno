@@ -95,7 +95,8 @@ export default function DashboardPage() {
                             alt={coin.name}
                             width={40}
                             height={40}
-                            className="rounded-full"
+                            className="rounded-full w-10 h-10"
+                            style={{ objectFit: 'cover' }}
                           />
                         </div>
                         <div className="ml-4">

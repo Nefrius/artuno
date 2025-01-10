@@ -12,8 +12,11 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 }
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+let app = getApps()[0]
+if (!app) {
+  app = initializeApp(firebaseConfig)
+}
+
 const auth = getAuth(app)
 
 // Initialize Analytics only on client side
