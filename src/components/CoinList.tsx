@@ -39,55 +39,59 @@ export default function CoinList({ coins }: CoinListProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+    <div className="overflow-x-auto rounded-xl shadow-lg bg-white">
+      <table className="min-w-full">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               #
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Kripto Para
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Fiyat
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
               24s Değişim
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Piyasa Değeri
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-gray-200">
           {coins.map((coin) => (
             <motion.tr
               key={coin.id}
-              whileHover={{ backgroundColor: 'rgba(249, 250, 251, 0.5)' }}
-              className="hover:bg-gray-50 cursor-pointer"
+              whileHover={{ backgroundColor: 'rgba(249, 250, 251, 0.8)' }}
+              className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
             >
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                 {coin.market_cap_rank}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <Link href={`/analysis/${coin.id}`} className="flex items-center">
-                  <CoinImage src={coin.image} name={coin.name} size="sm" />
+                <Link href={`/analysis/${coin.id}`} className="flex items-center group">
+                  <div className="flex-shrink-0">
+                    <CoinImage src={coin.image} name={coin.name} size="sm" className="group-hover:scale-110 transition-transform duration-200" />
+                  </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">
                       {coin.name}
                     </div>
-                    <div className="text-sm text-gray-500 uppercase">
+                    <div className="text-sm text-gray-500 uppercase group-hover:text-indigo-400 transition-colors duration-200">
                       {coin.symbol}
                     </div>
                   </div>
                 </Link>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                {formatPrice(coin.current_price)}
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                <div className="text-sm font-semibold text-gray-900">
+                  {formatPrice(coin.current_price)}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                   coin.price_change_percentage_24h >= 0
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
@@ -96,8 +100,10 @@ export default function CoinList({ coins }: CoinListProps) {
                   {coin.price_change_percentage_24h.toFixed(2)}%
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                {formatMarketCap(coin.market_cap)}
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                <div className="text-sm font-semibold text-gray-900">
+                  {formatMarketCap(coin.market_cap)}
+                </div>
               </td>
             </motion.tr>
           ))}

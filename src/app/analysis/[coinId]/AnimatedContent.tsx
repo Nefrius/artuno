@@ -15,9 +15,12 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  TimeScale
 } from 'chart.js'
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
+import 'chartjs-adapter-date-fns'
+import { tr } from 'date-fns/locale'
 
 ChartJS.register(
   CategoryScale,
@@ -27,7 +30,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  TimeScale
 )
 
 interface AnimatedContentProps {
@@ -72,30 +76,29 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
   const trendColor = prediction.trend === 'up' ? 'text-green-500' : 'text-red-500'
   const highlightColor = 'text-blue-700 font-semibold'
 
-  // Grafik verilerini hazırla
-  const currentPrice = prediction.technicalIndicators.sma20
-  const predictedPrice = prediction.predictedPrice
-  const hours = Array.from({ length: 25 }, (_, i) => i)
-  
   const chartData: ChartData<'line'> = {
-    labels: hours.map(hour => `${hour}s`),
+    labels: Array.from({ length: 24 }, (_, i) => {
+      const date = new Date()
+      date.setHours(date.getHours() - (23 - i))
+      return date
+    }),
     datasets: [
       {
         label: 'Gerçek Fiyat',
         data: prediction.historicalPrices,
-        borderColor: 'rgb(30, 64, 175)', // Koyu mavi
-        backgroundColor: 'rgba(30, 64, 175, 0.1)',
-        fill: false,
-        tension: 0.4,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4
       },
       {
         label: 'Tahmin',
-        data: Array(prediction.historicalPrices.length - 1).fill(null).concat([prediction.historicalPrices[prediction.historicalPrices.length - 1], predictedPrice]),
-        borderColor: prediction.trend === 'up' ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
-        backgroundColor: prediction.trend === 'up' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+        data: Array(23).fill(null).concat(prediction.predictedPrice),
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
         borderDash: [5, 5],
-        fill: false,
-        tension: 0.4,
+        fill: true,
+        tension: 0.4
       }
     ]
   }
@@ -157,14 +160,27 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
     },
     scales: {
       x: {
+        type: 'time',
+        adapters: {
+          date: {
+            locale: tr
+          }
+        },
+        time: {
+          unit: 'hour',
+          displayFormats: {
+            hour: 'HH:mm'
+          },
+          tooltipFormat: 'HH:mm'
+        },
         grid: {
           display: false
         },
         ticks: {
           font: {
-            size: 12,
-            family: 'system-ui'
-          }
+            size: 12
+          },
+          maxRotation: 0
         }
       },
       y: {
@@ -193,15 +209,20 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
       className="p-6 bg-white rounded-lg shadow-lg"
     >
       <div className="flex items-center mb-6">
-        <Link 
-          href="/" 
-          className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
-          aria-label="Geri dön"
-        >
+        <Link href="/dashboard" className="mr-4">
           <ArrowLeft className="w-6 h-6 text-gray-600" />
         </Link>
-        <CoinImage src={`https://assets.coingecko.com/coins/images/${coinId}/small/${coinId}.png`} alt={coinId} className="w-12 h-12 mr-4" />
-        <h1 className="text-2xl font-bold capitalize text-blue-700">{coinId} Analizi</h1>
+        <div className="flex items-center">
+          <CoinImage src={`/api/coin-image/${coinId}`} size="lg" className="mr-3" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              {coinId.charAt(0).toUpperCase() + coinId.slice(1)} Analizi
+            </h1>
+            <div className="text-xl font-semibold text-gray-700 mt-1">
+              ${prediction.historicalPrices[prediction.historicalPrices.length - 1].toFixed(2)}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -246,22 +267,22 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
 
           <div className="bg-gray-50 p-4 rounded-lg">
             <h2 className="text-xl font-semibold mb-4 text-blue-700">Teknik Göstergeler</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className={highlightColor}>RSI (14)</span>
-                <span className="font-semibold">{prediction.technicalIndicators.rsi.toFixed(2)}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <div className="text-gray-600 text-sm mb-2">RSI</div>
+                <div className="text-2xl font-bold text-gray-900">{prediction.technicalIndicators.rsi.toFixed(2)}</div>
               </div>
-              <div className="flex justify-between">
-                <span className={highlightColor}>MACD</span>
-                <span className="font-semibold">{prediction.technicalIndicators.macd.toFixed(2)}</span>
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <div className="text-gray-600 text-sm mb-2">MACD</div>
+                <div className="text-2xl font-bold text-gray-900">{prediction.technicalIndicators.macd.toFixed(2)}</div>
               </div>
-              <div className="flex justify-between">
-                <span className={highlightColor}>SMA (20)</span>
-                <span className="font-semibold">${prediction.technicalIndicators.sma20.toFixed(2)}</span>
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <div className="text-gray-600 text-sm mb-2">SMA (20)</div>
+                <div className="text-2xl font-bold text-gray-900">{prediction.technicalIndicators.sma20.toFixed(2)}</div>
               </div>
-              <div className="flex justify-between">
-                <span className={highlightColor}>EMA (50)</span>
-                <span className="font-semibold">${prediction.technicalIndicators.ema50.toFixed(2)}</span>
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <div className="text-gray-600 text-sm mb-2">EMA (50)</div>
+                <div className="text-2xl font-bold text-gray-900">{prediction.technicalIndicators.ema50.toFixed(2)}</div>
               </div>
             </div>
           </div>

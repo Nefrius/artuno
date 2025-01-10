@@ -10,6 +10,7 @@ export interface Prediction extends PredictionRow {
   coin_id: string
   created_at: string
   prediction_type: 'up' | 'down'
+  confidence_score: number
   result: boolean | null
 }
 
@@ -17,20 +18,24 @@ export interface CreatePredictionData {
   userId: string
   coinId: string
   targetDate: Date
-  predictedPrice: number
   prediction_type: 'up' | 'down'
+  predicted_price: number
 }
 
 export const createPrediction = async (data: CreatePredictionData): Promise<PredictionRow> => {
   try {
+    // Basit bir güven skoru hesaplama (0-100 arası)
+    const confidenceScore = Math.floor(Math.random() * 30) + 70 // 70-100 arası rastgele bir değer
+
     const { data: prediction, error } = await supabase
       .from('predictions')
       .insert({
         user_id: data.userId,
         coin_id: data.coinId,
         target_date: data.targetDate.toISOString(),
-        predicted_price: data.predictedPrice,
-        prediction_type: data.prediction_type
+        prediction_type: data.prediction_type,
+        predicted_price: data.predicted_price,
+        confidence_score: confidenceScore
       })
       .select('*')
       .single()

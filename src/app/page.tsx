@@ -260,7 +260,7 @@ export default function HomePage() {
             {user ? 'Tahminlere Git' : 'Ücretsiz Deneyin'}
           </motion.button>
         </motion.div>
-      </div>
+    </div>
     </PageLayout>
   )
 }

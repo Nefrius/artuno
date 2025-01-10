@@ -112,10 +112,23 @@ export const updateDailyPredictions = async (userId: string, newCount: number): 
 
 export const incrementTotalPredictions = async (userId: string): Promise<UserRow> => {
   try {
+    // Önce mevcut kullanıcı verisini al
+    const { data: currentUser, error: fetchError } = await supabase
+      .from('users')
+      .select('total_predictions')
+      .eq('id', userId)
+      .single()
+
+    if (fetchError) {
+      console.error('Kullanıcı verisi alınamadı:', JSON.stringify(fetchError, null, 2))
+      throw fetchError
+    }
+
+    // Toplam tahmin sayısını bir artır
     const { data, error } = await supabase
       .from('users')
       .update({
-        total_predictions: supabase.rpc('increment')
+        total_predictions: (currentUser?.total_predictions || 0) + 1
       })
       .eq('id', userId)
       .select('*')

@@ -7,9 +7,9 @@ const DEFAULT_IMAGE = 'https://assets.coingecko.com/coins/images/1/small/bitcoin
 
 export async function GET(
   request: Request,
-  { params }: { params: { coinId: string } }
+  { params }: { params: Promise<{ coinId: string }> }
 ) {
-  const coinId = params.coinId
+  const { coinId } = await params
   
   try {
     const apiKey = process.env.NEXT_PUBLIC_COINGECKO_API_KEY

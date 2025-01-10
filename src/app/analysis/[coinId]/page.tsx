@@ -4,17 +4,17 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import PageLayout from '@/components/PageLayout'
 
 interface AnalysisPageProps {
-  params: {
-    coinId: string
-  }
+  params: Promise<{ coinId: string }>
 }
 
-export default function AnalysisPage({ params }: AnalysisPageProps) {
+export default async function AnalysisPage({ params }: AnalysisPageProps) {
+  const { coinId } = await params
+  
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingSpinner />}>
-          <CoinAnalysisContent coinId={params.coinId} />
+          <CoinAnalysisContent coinId={coinId} />
         </Suspense>
       </div>
     </PageLayout>
