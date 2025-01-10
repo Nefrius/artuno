@@ -2,14 +2,14 @@ import { fetchFromCoinGecko } from '@/lib/services/predictions.service'
 
 export const dynamic = "force-static"
 
-export async function generateStaticParams() {
-  return [
+export async function generateStaticParams(): Promise<{ coinId: string }[]> {
+  return Promise.resolve([
     { coinId: 'bitcoin' },
     { coinId: 'ethereum' },
     { coinId: 'binancecoin' },
     { coinId: 'ripple' },
     { coinId: 'cardano' }
-  ]
+  ])
 }
 
 export async function GET(

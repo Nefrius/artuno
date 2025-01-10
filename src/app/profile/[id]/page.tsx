@@ -7,10 +7,10 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export async function generateStaticParams() {
-  return [
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  return Promise.resolve([
     { id: 'default' }
-  ]
+  ])
 }
 
 export default async function UserProfilePage({ params }: Props) {

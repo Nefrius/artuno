@@ -7,11 +7,11 @@ interface PageProps {
   }>
 }
 
-export async function generateStaticParams() {
-  return [
+export async function generateStaticParams(): Promise<{ coinId: string }[]> {
+  return Promise.resolve([
     { coinId: 'bitcoin' },
     { coinId: 'ethereum' }
-  ]
+  ])
 }
 
 export default function CoinAnalysisPage({ params }: PageProps) {
