@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 
 const API_KEY = process.env.NEXT_PUBLIC_COINGECKO_API_KEY
 
+export const dynamic = "force-static"
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const endpoint = searchParams.get('endpoint')
