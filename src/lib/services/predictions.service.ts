@@ -64,10 +64,16 @@ export async function getCoinDetails(coinId: string) {
   }
 }
 
-export async function getHistoricalData(coinId: string, days = 30) {
+export async function getHistoricalData(coinId: string, days = 1) {
   try {
-    const data = await fetchFromCoinGecko(`/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`)
-    return data
+    const data = await fetchFromCoinGecko(`/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=hourly`)
+    if (!data || !data.prices || !Array.isArray(data.prices)) {
+      throw new Error('Geçersiz veri formatı')
+    }
+    return {
+      prices: data.prices.map((price: [number, number]) => price[1]),
+      timestamps: data.prices.map((price: [number, number]) => price[0])
+    }
   } catch (error) {
     console.error('Geçmiş veriler alınamadı:', error)
     throw error

@@ -20,7 +20,6 @@ import {
 } from 'chart.js'
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
 import 'chartjs-adapter-date-fns'
-import { tr } from 'date-fns/locale'
 
 ChartJS.register(
   CategoryScale,
@@ -85,11 +84,13 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
     datasets: [
       {
         label: 'Gerçek Fiyat',
-        data: prediction.historicalPrices,
+        data: prediction.historicalPrices || [],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
-        tension: 0.4
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
       },
       {
         label: 'Tahmin',
@@ -98,7 +99,9 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         borderDash: [5, 5],
         fill: true,
-        tension: 0.4
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
       }
     ]
   }
@@ -128,7 +131,7 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
         font: {
           size: 16,
           family: 'system-ui',
-          weight: 'bold' as const
+          weight: 'bold'
         },
         padding: 20
       },
@@ -151,7 +154,10 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
         callbacks: {
           label: function(tooltipItem: TooltipItem<'line'>) {
             if (tooltipItem.dataset.label && tooltipItem.formattedValue) {
-              return `${tooltipItem.dataset.label}: $${tooltipItem.formattedValue}`
+              return `${tooltipItem.dataset.label}: $${Number(tooltipItem.formattedValue).toLocaleString('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
             }
             return ''
           }
@@ -161,11 +167,6 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
     scales: {
       x: {
         type: 'time',
-        adapters: {
-          date: {
-            locale: tr
-          }
-        },
         time: {
           unit: 'hour',
           displayFormats: {
@@ -192,9 +193,11 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
             size: 12,
             family: 'system-ui'
           },
-          callback: function(tickValue: number | string) {
-            const value = typeof tickValue === 'string' ? parseFloat(tickValue) : tickValue
-            return '$' + value.toFixed(2)
+          callback: function(value: number | string) {
+            return '$' + Number(value).toLocaleString('tr-TR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })
           }
         }
       }
@@ -219,7 +222,10 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
               {coinId.charAt(0).toUpperCase() + coinId.slice(1)} Analizi
             </h1>
             <div className="text-xl font-semibold text-gray-700 mt-1">
-              ${prediction.historicalPrices[prediction.historicalPrices.length - 1].toFixed(2)}
+              ${prediction.historicalPrices?.length > 0 
+                ? prediction.historicalPrices[prediction.historicalPrices.length - 1].toFixed(2)
+                : '0.00'
+              }
             </div>
           </div>
         </div>

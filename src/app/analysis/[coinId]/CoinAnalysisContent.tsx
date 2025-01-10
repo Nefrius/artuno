@@ -38,12 +38,14 @@ interface PredictionData {
     }
     updateFrequency: string
   }
+  historicalPrices?: number[]
 }
 
 export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [prediction, setPrediction] = useState<PredictionData | null>(null)
+  const [historicalPrices, setHistoricalPrices] = useState<number[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +68,10 @@ export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps
           },
           body: JSON.stringify({
             coinId,
-            prices: marketData.prices,
+            prices: marketData.timestamps.map((timestamp: number, index: number) => [
+              timestamp,
+              marketData.prices[index]
+            ]),
             timeframe: '24h'
           }),
         })
@@ -77,6 +82,7 @@ export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps
 
         const result = await response.json()
         setPrediction(result)
+        setHistoricalPrices(marketData.prices)
 
       } catch (err) {
         console.error('Veri alma hatası:', err)
@@ -94,22 +100,17 @@ export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps
   }
 
   if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-500">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Tekrar Dene
-        </button>
-      </div>
-    )
+    return <div className="text-red-500">{error}</div>
   }
 
   if (!prediction) {
     return null
   }
 
-  return <AnimatedContent coinId={coinId} prediction={prediction} />
+  const predictionWithHistory = {
+    ...prediction,
+    historicalPrices
+  }
+
+  return <AnimatedContent coinId={coinId} prediction={predictionWithHistory} />
 } 
