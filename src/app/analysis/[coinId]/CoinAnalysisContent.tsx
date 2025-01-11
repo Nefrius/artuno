@@ -54,18 +54,33 @@ export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps
         setError(null)
 
         // Market verileri
-        const marketResponse = await fetch(`/api/crypto/market-chart?coinId=${coinId}`)
+        const marketResponse = await fetch(`/api/crypto/market-chart?coinId=${coinId}`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+
         if (!marketResponse.ok) {
-          throw new Error('Market verileri alınamadı')
+          const errorData = await marketResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Market verileri alınamadı')
         }
+
         const marketData = await marketResponse.json()
+
+        if (!marketData || !marketData.prices || !marketData.timestamps) {
+          throw new Error('Geçersiz market verisi formatı')
+        }
 
         // AI analizi
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
           },
+          cache: 'no-store',
           body: JSON.stringify({
             coinId,
             prices: marketData.timestamps.map((timestamp: number, index: number) => [
@@ -77,7 +92,8 @@ export default function CoinAnalysisContent({ coinId }: CoinAnalysisContentProps
         })
 
         if (!response.ok) {
-          throw new Error('Analiz yapılamadı')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Analiz yapılamadı')
         }
 
         const result = await response.json()

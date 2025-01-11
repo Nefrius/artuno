@@ -1,7 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const generateHistoricalPrices = (currentPrice: number, priceChange: number) => {
+  const previousPrice = currentPrice / (1 + priceChange / 100)
+  const prices = []
+  const numPoints = 48
+
+  for (let i = 0; i < numPoints; i++) {
+    const progress = i / (numPoints - 1)
+    const basePrice = previousPrice + (currentPrice - previousPrice) * progress
+    // Gerçekçi dalgalanmalar ekle
+    const volatility = Math.sin(progress * Math.PI * 2) * (priceChange / 200)
+    prices.push(Number((basePrice * (1 + volatility)).toFixed(2)))
+  }
+
+  return prices
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,22 +28,26 @@ export async function GET(request: NextRequest) {
     const coinId = searchParams.get('coinId')
 
     if (!coinId) {
-      return NextResponse.json(
-        { error: 'coinId parametresi gerekli' },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: 'coinId parametresi gerekli' }),
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store'
+          }
+        }
       )
     }
 
     console.log('CoinGecko API isteği başlatılıyor...')
-    
-    // Rate limit için bekleme
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await sleep(1500)
 
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`,
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`,
       {
+        method: 'GET',
         headers: {
-          'x-cg-demo-api-key': 'CG-EiZXfV6mdcJDYUFmHrMSQyAo',
           'Accept': 'application/json'
         }
       }
@@ -33,9 +56,7 @@ export async function GET(request: NextRequest) {
     console.log('API Yanıt Durumu:', response.status)
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('CoinGecko API Hata Yanıtı:', errorText)
-      throw new Error(`CoinGecko API hatası: ${response.status} - ${errorText}`)
+      throw new Error(`CoinGecko API hatası: ${response.status}`)
     }
 
     const data = await response.json()
@@ -44,32 +65,39 @@ export async function GET(request: NextRequest) {
       throw new Error('Geçersiz veri formatı')
     }
 
-    // Son 24 saatlik fiyat değişimini kullanarak yapay veri oluştur
     const currentPrice = data[coinId].usd
-    const priceChange24h = data[coinId].usd_24h_change || 0
-    const startPrice = currentPrice / (1 + priceChange24h / 100)
-    
-    // 24 saatlik veriyi simüle et
-    const timestamps = []
-    const prices = []
+    const priceChange = data[coinId].usd_24h_change || 0
     const now = Date.now()
-    for (let i = 0; i < 24; i++) {
-      const timestamp = now - (23 - i) * 3600 * 1000
-      const progress = i / 23
-      const price = startPrice + (currentPrice - startPrice) * progress
-      timestamps.push(timestamp)
-      prices.push(price)
+    const hourInMs = 3600000
+
+    const historicalPrices = generateHistoricalPrices(currentPrice, priceChange)
+    const timestamps = Array.from({ length: 48 }, (_, i) => now - (47 - i) * (hourInMs / 2))
+
+    const result = {
+      prices: historicalPrices,
+      timestamps,
+      currentPrice,
+      priceChange
     }
 
-    return NextResponse.json({
-      prices,
-      timestamps
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store'
+      }
     })
   } catch (error) {
     console.error('Market chart verisi alınamadı:', error)
-    return NextResponse.json(
-      { error: 'Market chart verisi alınamadı' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Market chart verisi alınamadı' }),
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store'
+        }
+      }
     )
   }
 } 
