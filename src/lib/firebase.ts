@@ -1,6 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getAnalytics } from 'firebase/analytics'
+import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,17 +11,11 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 }
 
-let app = getApps()[0]
-if (!app) {
-  app = initializeApp(firebaseConfig)
-}
-
+// Initialize Firebase
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 const auth = getAuth(app)
 
-// Initialize Analytics only on client side
-let analytics = null
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app)
-}
+// Configure auth persistence
+setPersistence(auth, browserLocalPersistence)
 
-export { app, auth, analytics } 
+export { app, auth } 

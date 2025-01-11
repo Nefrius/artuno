@@ -1,13 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import PageLayout from '@/components/PageLayout'
 import { motion } from 'framer-motion'
 import { TrendingUp, ChartBar, Shield, Brain, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { FcGoogle } from 'react-icons/fc'
+import { HiMail } from 'react-icons/hi'
+import LoginForm from '@/components/LoginForm'
+import { AnimatePresence } from 'framer-motion'
 
 export default function HomePage() {
   const { user, signInWithGoogle } = useAuth()
+  const [showLogin, setShowLogin] = useState(false)
 
   const features = [
     {
@@ -104,9 +110,22 @@ export default function HomePage() {
                 </p>
                 <button
                   onClick={() => signInWithGoogle()}
-                  className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors w-full"
+                  className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors w-full flex items-center justify-center gap-2"
                 >
-                  Google ile Giriş Yap
+                  <FcGoogle className="h-6 w-6" /> Google ile Giriş Yap
+                </button>
+                
+                <div className="flex items-center gap-4 w-full my-4">
+                  <div className="h-px bg-gray-300 flex-1"></div>
+                  <span className="text-gray-500">veya</span>
+                  <div className="h-px bg-gray-300 flex-1"></div>
+                </div>
+
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="bg-white text-indigo-600 px-8 py-3 rounded-lg text-lg font-medium border-2 border-indigo-600 hover:bg-indigo-50 transition-colors w-full flex items-center justify-center gap-2"
+                >
+                  <HiMail className="h-6 w-6" /> Email ile Giriş Yap
                 </button>
               </div>
             </motion.div>
@@ -260,7 +279,31 @@ export default function HomePage() {
             {user ? 'Tahminlere Git' : 'Ücretsiz Deneyin'}
           </motion.button>
         </motion.div>
+      </div>
+
+      <AnimatePresence>
+        {showLogin && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogin(false)}
+              className="fixed inset-0 bg-black cursor-pointer z-40"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none z-50"
+            >
+              <div className="pointer-events-auto">
+                <LoginForm onClose={() => setShowLogin(false)} />
     </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </PageLayout>
   )
 }

@@ -1,394 +1,318 @@
 'use client'
 
-import { useAuth } from '@/context/AuthContext'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Menu, X, ChevronDown, Settings, LogOut, User, Loader, Search } from 'lucide-react'
-import Image from 'next/image'
+import { useAuth } from '@/context/AuthContext'
+import { usePathname } from 'next/navigation'
+import NotificationBell from './NotificationBell'
+import { getUserRole } from '@/lib/supabase'
+import { Menu, X, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAlert } from './Alert'
-import { searchUsers } from '@/lib/services/user.service'
-
-interface SearchResult {
-  id: string
-  email: string
-  created_at: string
-}
 
 export default function Navbar() {
-  const { user, loading, signInWithGoogle, logout } = useAuth()
-  const { showAlert } = useAlert()
+  const { user, logout } = useAuth()
   const pathname = usePathname()
-  const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isAuthLoading, setIsAuthLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [noResults, setNoResults] = useState(false)
 
-  const navigation = [
-    { name: 'Ana Sayfa', href: '/' },
-    { name: 'Piyasalar', href: '/markets' },
-    { name: 'Tahminler', href: '/predictions', requireAuth: true },
-    { name: 'Profil', href: '/profile', requireAuth: true },
-    { name: 'Nasıl Çalışır?', href: '/how-it-works' },
-    { name: 'Hakkında', href: '/about' },
+  const checkAdminStatus = useCallback(async () => {
+    if (!user) return
+    const role = await getUserRole(user.uid)
+    setIsAdmin(role === 'admin')
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      checkAdminStatus()
+    }
+  }, [user, checkAdminStatus])
+
+  const navItems = [
+    { href: '/', label: 'Ana Sayfa' },
+    { href: '/markets', label: 'Piyasalar' },
+    { href: '/how-it-works', label: 'Nasıl Çalışır?' },
+    { href: '/about', label: 'Hakkında' },
   ]
 
-  const menuVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 }
+  const userNavItems = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/settings', label: 'Ayarlar' },
+  ]
+
+  if (isAdmin) {
+    userNavItems.unshift({ href: '/admin', label: 'Admin Panel' })
   }
 
-  const handleSignIn = async () => {
-    try {
-      setIsAuthLoading(true)
-      showAlert('Giriş yapılıyor...', 'info')
-      await signInWithGoogle()
-      showAlert('Giriş başarıyla yapıldı!', 'success')
-    } catch {
-      showAlert('Giriş işlemi iptal edildi.', 'error')
-    } finally {
-      setIsAuthLoading(false)
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      setIsAuthLoading(true)
-      await logout()
-      showAlert('Çıkış yapıldı.', 'info')
-    } catch {
-      showAlert('Çıkış yapılırken bir hata oluştu.', 'error')
-    } finally {
-      setIsAuthLoading(false)
-    }
-  }
-
-  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value
-    setSearchQuery(query)
-    setNoResults(false)
-
-    if (query.trim().length < 2) {
-      setSearchResults([])
-      return
-    }
-
-    setIsSearching(true)
-    try {
-      const results = await searchUsers(query)
-      console.log('Arama sonuçları:', results)
-      setSearchResults(results)
-      setNoResults(results.length === 0)
-    } catch (error) {
-      console.error('Arama hatası:', error)
-      showAlert('Arama yapılırken bir hata oluştu.', 'error')
-      setNoResults(true)
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchResults.length > 0) {
-      const userId = searchResults[0].id
-      router.push(`/profile/${userId}`)
-      setSearchQuery('')
-      setSearchResults([])
-      setNoResults(false)
-    }
-  }
-
-  const handleResultClick = (userId: string) => {
-    router.push(`/profile/${userId}`)
-    setSearchQuery('')
-    setSearchResults([])
-    setNoResults(false)
+    // Arama işlemi burada yapılacak
+    console.log('Arama yapılıyor:', searchQuery)
   }
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100 }}
-      className="bg-white shadow-sm"
+    <motion.nav 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-full bg-white/80 backdrop-blur-md border-b border-gray-200"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
-          <div className="flex items-center space-x-8">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
-            >
-              <Link href="/" className="text-2xl font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
-                Artuno
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between px-4 py-3 space-y-3 lg:space-y-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-8">
+              <Link href="/" className="flex-shrink-0">
+                <motion.span 
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-2xl font-bold text-indigo-600"
+                >
+                  Artuno
+                </motion.span>
               </Link>
-            </motion.div>
-            <div className="hidden lg:flex lg:space-x-8">
-              {navigation.map((item) => {
-                if (item.requireAuth && !user) return null
-                return (
+
+              <div className="hidden lg:flex lg:space-x-8">
+                {navItems.map((item, index) => (
                   <motion.div
                     key={item.href}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ y: 0 }}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
                     <Link
                       href={item.href}
-                      className={`inline-flex items-center px-3 pt-1 text-sm font-medium ${
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${
                         pathname === item.href
-                          ? 'border-b-2 border-indigo-500 text-gray-900'
-                          : 'border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                      } transition-all duration-200`}
+                          ? 'text-indigo-600'
+                          : 'text-gray-500 hover:text-indigo-600'
+                      }`}
                     >
-                      {item.name}
+                      {item.label}
                     </Link>
                   </motion.div>
-                )
-              })}
+                ))}
+              </div>
+            </div>
+
+            {/* Mobil menü butonu */}
+            <div className="flex items-center lg:hidden">
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-gray-100 transition-colors duration-200"
+              >
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              </motion.button>
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <div className="hidden md:block w-80">
-              <form onSubmit={handleSearchSubmit}>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Kullanıcı ara..."
-                    value={searchQuery}
-                    onChange={handleSearch}
-                    className="w-full px-4 py-2 text-sm text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {isSearching ? (
-                      <Loader className="h-4 w-4 text-gray-400 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4 text-gray-400" />
-                    )}
-                  </div>
+          {/* Arama çubuğu */}
+          <div className="flex-1 max-w-2xl mx-auto lg:mx-8 w-full">
+            <form onSubmit={handleSearch} className="relative">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
                 </div>
-              </form>
-
-              <AnimatePresence>
-                {(searchResults.length > 0 || noResults) && searchQuery.trim().length >= 2 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-                  >
-                    <div className="py-2">
-                      {noResults ? (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                          Kullanıcı bulunamadı
-                        </div>
-                      ) : (
-                        searchResults.map((result) => (
-                          <div
-                            key={result.id}
-                            onClick={() => handleResultClick(result.id)}
-                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center"
-                          >
-                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                              <User className="h-4 w-4 text-indigo-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {result.email.split('@')[0]}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {result.email}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              {!loading && (
-                <>
-                  {user ? (
-                    <div className="relative">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <button
-                          onClick={() => setIsProfileOpen(!isProfileOpen)}
-                          className="flex items-center space-x-2 max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                          disabled={isAuthLoading}
-                        >
-                          {user.photoURL ? (
-                            <Image
-                              className="h-10 w-10 rounded-full"
-                              src={user.photoURL}
-                              alt=""
-                              width={40}
-                              height={40}
-                              priority
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                              <User className="h-6 w-6 text-indigo-600" />
-                            </div>
-                          )}
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        </button>
-                      </motion.div>
-                      <AnimatePresence>
-                        {isProfileOpen && (
-                          <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            variants={menuVariants}
-                            className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
-                          >
-                            <div className="py-1">
-                              <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                                {user.email}
-                              </div>
-                              <motion.div
-                                whileHover={{ x: 5 }}
-                                className="block w-full text-left"
-                              >
-                                <Link
-                                  href="/profile"
-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <User className="mr-2 h-4 w-4" />
-                                  Profil
-                                </Link>
-                              </motion.div>
-                              <motion.div
-                                whileHover={{ x: 5 }}
-                                className="block w-full text-left"
-                              >
-                                <Link
-                                  href="/settings"
-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <Settings className="mr-2 h-4 w-4" />
-                                  Ayarlar
-                                </Link>
-                              </motion.div>
-                              <motion.button
-                                whileHover={{ x: 5 }}
-                                onClick={handleLogout}
-                                disabled={isAuthLoading}
-                                className="flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
-                              >
-                                {isAuthLoading ? (
-                                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                  <LogOut className="mr-2 h-4 w-4" />
-                                )}
-                                Çıkış Yap
-                              </motion.button>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleSignIn}
-                      disabled={isAuthLoading}
-                      className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors flex items-center"
-                    >
-                      {isAuthLoading ? (
-                        <Loader className="mr-2 h-4 w-4 animate-spin" />
-                      ) : null}
-                      Google ile Giriş Yap
-                    </motion.button>
-                  )}
-                </>
-              )}
-
-              <div className="flex items-center lg:hidden">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                >
-                  <span className="sr-only">Menüyü aç</span>
-                  {isOpen ? (
-                    <X className="block h-6 w-6" />
-                  ) : (
-                    <Menu className="block h-6 w-6" />
-                  )}
-                </motion.button>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Kullanıcı ara..."
+                />
               </div>
-            </div>
+            </form>
+          </div>
+
+          {/* Kullanıcı menüsü */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-4">
+            {user ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center space-x-4"
+              >
+                <NotificationBell />
+                {userNavItems.map((item, index) => (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Link
+                      href={item.href}
+                      className="text-gray-500 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                ))}
+                <motion.button
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: userNavItems.length * 0.1 }}
+                  onClick={() => logout()}
+                  className="text-gray-500 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                >
+                  Çıkış Yap
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => logout()}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:bg-indigo-700 transition-colors duration-200"
+              >
+                Google ile Giriş Yap
+              </motion.button>
+            )}
           </div>
         </div>
 
+        {/* Mobil menü */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={menuVariants}
-              className="lg:hidden"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden border-t border-gray-200"
             >
-              <div className="pt-2 pb-3 space-y-1">
-                <div className="px-4 pb-4">
-                  <form onSubmit={handleSearchSubmit}>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Kullanıcı ara..."
-                        value={searchQuery}
-                        onChange={handleSearch}
-                        className="w-full px-4 py-2 text-sm text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                        {isSearching ? (
-                          <Loader className="h-4 w-4 text-gray-400 animate-spin" />
-                        ) : (
-                          <Search className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                  </form>
-                </div>
-
-                {navigation.map((item) => {
-                  if (item.requireAuth && !user) return null
-                  return (
-                    <motion.div
-                      key={item.href}
-                      whileHover={{ x: 5 }}
-                      whileTap={{ x: 0 }}
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {navItems.map((item) => (
+                  <motion.div
+                    key={item.href}
+                    variants={{
+                      open: {
+                        y: 0,
+                        opacity: 1,
+                        transition: {
+                          y: { stiffness: 1000, velocity: -100 }
+                        }
+                      },
+                      closed: {
+                        y: 50,
+                        opacity: 0,
+                        transition: {
+                          y: { stiffness: 1000 }
+                        }
+                      }
+                    }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
+                        pathname === item.href
+                          ? 'text-indigo-600'
+                          : 'text-gray-500 hover:text-indigo-600'
+                      }`}
                     >
-                      <Link
-                        href={item.href}
-                        className={`block pl-3 pr-4 py-2 text-base font-medium ${
-                          pathname === item.href
-                            ? 'bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700'
-                            : 'border-l-4 border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                        } transition-all duration-200`}
-                        onClick={() => setIsOpen(false)}
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                ))}
+
+                {user ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <NotificationBell />
+                    </div>
+                    {userNavItems.map((item) => (
+                      <motion.div
+                        key={item.href}
+                        variants={{
+                          open: {
+                            y: 0,
+                            opacity: 1,
+                            transition: {
+                              y: { stiffness: 1000, velocity: -100 }
+                            }
+                          },
+                          closed: {
+                            y: 50,
+                            opacity: 0,
+                            transition: {
+                              y: { stiffness: 1000 }
+                            }
+                          }
+                        }}
                       >
-                        {item.name}
-                      </Link>
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 transition-colors duration-200"
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                    <motion.div
+                      variants={{
+                        open: {
+                          y: 0,
+                          opacity: 1,
+                          transition: {
+                            y: { stiffness: 1000, velocity: -100 }
+                          }
+                        },
+                        closed: {
+                          y: 50,
+                          opacity: 0,
+                          transition: {
+                            y: { stiffness: 1000 }
+                          }
+                        }
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          logout()
+                          setIsOpen(false)
+                        }}
+                        className="block w-full text-left px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 transition-colors duration-200"
+                      >
+                        Çıkış Yap
+                      </button>
                     </motion.div>
-                  )
-                })}
+                  </>
+                ) : (
+                  <motion.div
+                    variants={{
+                      open: {
+                        y: 0,
+                        opacity: 1,
+                        transition: {
+                          y: { stiffness: 1000, velocity: -100 }
+                        }
+                      },
+                      closed: {
+                        y: 50,
+                        opacity: 0,
+                        transition: {
+                          y: { stiffness: 1000 }
+                        }
+                      }
+                    }}
+                    className="px-3 py-2"
+                  >
+                    <button
+                      onClick={() => {
+                        logout()
+                        setIsOpen(false)
+                      }}
+                      className="w-full bg-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:bg-indigo-700 transition-colors duration-200"
+                    >
+                      Google ile Giriş Yap
+                    </button>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           )}
