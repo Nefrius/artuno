@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, ChartBar, Activity, BarChart2, FileText, Clock } from 'lucide-react'
 import Link from 'next/link'
 import CoinImage from '@/components/CoinImage'
-import { Line } from 'react-chartjs-2'
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,7 +18,6 @@ import {
   Filler,
   TimeScale
 } from 'chart.js'
-import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 
 ChartJS.register(
@@ -78,182 +77,6 @@ export default function AnimatedContent({ coinId, prediction }: AnimatedContentP
   const formatPrice = (price: number | undefined | null): number => {
     if (typeof price !== 'number' || isNaN(price)) return 0
     return Number(price.toFixed(2))
-  }
-
-  const generatePriceData = () => {
-    const currentPrice = Number(prediction.historicalPrices?.[prediction.historicalPrices.length - 1] || 0)
-    const predictedPrice = Number(prediction.predictedPrice || currentPrice)
-    const priceChange = predictedPrice - currentPrice
-    const hourlyChange = priceChange / 48
-    const basePrice = currentPrice || 2.41 // Varsayılan başlangıç fiyatı
-
-    return Array.from({ length: 48 }, (_, i) => {
-      const progress = i / 47
-      const price = basePrice + (hourlyChange * i)
-      // Gerçekçi dalgalanmalar ekle
-      const volatility = Math.sin(progress * Math.PI * 2) * (Math.abs(hourlyChange) / 2)
-      return Number((price + volatility).toFixed(2))
-    })
-  }
-
-  const chartData: ChartData<'line'> = {
-    labels: Array.from({ length: 48 }, (_, i) => {
-      const date = new Date()
-      date.setMinutes(date.getMinutes() - (47 - i) * 30)
-      return date
-    }),
-    datasets: [
-      {
-        label: 'Fiyat',
-        data: generatePriceData(),
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        borderWidth: 2,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: 'rgb(59, 130, 246)',
-        pointHoverBorderColor: 'white',
-        pointHoverBorderWidth: 2,
-        yAxisID: 'y'
-      },
-      {
-        label: 'Tahmin',
-        data: Array(47).fill(null).concat(prediction.predictedPrice || 0),
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        borderDash: [5, 5],
-        fill: false,
-        tension: 0.4,
-        pointRadius: 0,
-        borderWidth: 2,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: 'rgb(34, 197, 94)',
-        pointHoverBorderColor: 'white',
-        pointHoverBorderWidth: 2,
-        yAxisID: 'y'
-      }
-    ]
-  }
-
-  const chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      intersect: false,
-      mode: 'index',
-    },
-    plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          font: {
-            size: 14,
-            family: 'system-ui'
-          },
-          padding: 20,
-          usePointStyle: true,
-          boxWidth: 6
-        }
-      },
-      title: {
-        display: true,
-        text: '24 Saatlik Fiyat Tahmini',
-        font: {
-          size: 16,
-          family: 'system-ui',
-          weight: 'bold'
-        },
-        padding: { top: 20, bottom: 20 },
-        color: '#1f2937'
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#1f2937',
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-        padding: 12,
-        bodyFont: {
-          size: 14,
-          family: 'system-ui'
-        },
-        titleFont: {
-          size: 14,
-          family: 'system-ui',
-          weight: 'bold'
-        },
-        displayColors: true,
-        boxWidth: 6,
-        boxHeight: 6,
-        boxPadding: 4,
-        callbacks: {
-          label: function(tooltipItem: TooltipItem<'line'>) {
-            if (tooltipItem.dataset.label && tooltipItem.formattedValue) {
-              const value = Number(tooltipItem.formattedValue)
-              return `${tooltipItem.dataset.label}: $${value.toFixed(2)}`
-            }
-            return ''
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: 'hour',
-          displayFormats: {
-            hour: 'HH:mm'
-          },
-          tooltipFormat: 'HH:mm'
-        },
-        grid: {
-          display: false
-        },
-        border: {
-          display: true,
-          color: '#e5e7eb'
-        },
-        ticks: {
-          font: {
-            size: 12,
-            family: 'system-ui'
-          },
-          maxRotation: 0,
-          color: '#6b7280'
-        }
-      },
-      y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
-        title: {
-          display: true,
-          text: 'Fiyat ($)',
-          color: '#6b7280'
-        },
-        grid: {
-          color: '#f3f4f6'
-        },
-        border: {
-          display: true,
-          color: '#e5e7eb'
-        },
-        ticks: {
-          font: {
-            size: 12,
-            family: 'system-ui'
-          },
-          padding: 8,
-          color: '#6b7280',
-          callback: function(value: number | string) {
-            return '$' + Number(value).toFixed(2)
-          }
-        }
-      }
-    }
   }
 
   return (
