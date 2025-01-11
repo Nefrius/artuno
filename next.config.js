@@ -2,11 +2,23 @@
 const nextConfig = {
   output: 'standalone',
   images: {
-    domains: [
-      'assets.coingecko.com', 
-      'coin-images.coingecko.com',
-      'lh3.googleusercontent.com',
-      'raw.githubusercontent.com'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'coin-images.coingecko.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
     ],
   }
 }
